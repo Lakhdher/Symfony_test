@@ -75,4 +75,10 @@ class Profile
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return $this->reseau_social." ".$this->url;
+    }
+    
 }

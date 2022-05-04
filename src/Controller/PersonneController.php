@@ -3,8 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Form\PersonneType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -56,19 +59,29 @@ class PersonneController extends AbstractController
     }
 
     #[Route('/add', name: 'Personne.Add')]
-    public function addPersonne(ManagerRegistry $doctrine): Response
+    public function addPersonne(ManagerRegistry $doctrine , Request $request): Response
     {
-        $entityManager = $doctrine->getManager();
         $personne = new Personne();
-        $personne->setName("Ennoury");
-        $personne->setFirstname("lemaalem");
-        $personne->setAge(22);
-        $entityManager->persist($personne);
-        $entityManager->flush();
+        $form = $this->createForm(PersonneType::class , $personne);
+        $form->remove("updatedAt");
+        $form->remove("createdAt");
+        $form->handleRequest($request);
+        if ($form->isSubmitted())
+        {
+            $manager=$doctrine->getManager();
+            $manager->persist($personne);
+            $manager->flush();
+            $this->addFlash("success",$personne->getName()." a été ajouté avec succés !");
+            return $this->redirectToRoute("Personne.List.Paginated");
 
-        return $this->render('personne/detail.html.twig', [
-            'personne' => $personne,
-        ]);
+        }else
+        {
+            return $this->render('personne/Form-Personne.html.twig', [
+                'form' => $form->createView()
+            ]);
+        }
+
+
     }
 
     #[Route("/delete/{id}","Personne.Delete")]
@@ -86,23 +99,41 @@ class PersonneController extends AbstractController
         return $this->redirectToRoute("Personne.List.Paginated");
     }
 
-    #[Route("/update/{id}/{name}/{firstname}/{age}","Personne.Update")]
-    public function updatePersonne(Personne $personne = null , ManagerRegistry $doctrine , $name , $firstname , $age) : Response
+    #[Route('/edit/{id?0}', name: 'Personne.Edit')]
+    public function editPersonne(Personne $personne = null , ManagerRegistry $doctrine , Request $request): Response
     {
+        $new = false;
         if (!$personne) {
-            $this->addFlash("error","personne non trouvable");
-        }    
-        else{
+        $new = true;
+        $personne = new Personne();  
+        }
+        $form = $this->createForm(PersonneType::class , $personne);
+        $form->remove("updatedAt");
+        $form->remove("createdAt");
+        $form->handleRequest($request);
+        if ($form->isSubmitted())
+        {
             $manager=$doctrine->getManager();
-            $personne->setName($name);
-            $personne->setFirstName($firstname);
-            $personne->setAge($age);
             $manager->persist($personne);
             $manager->flush();
-            $this->addFlash("success","updated!");
-        }
-        return $this->redirectToRoute("Personne.List.Paginated");
-    }
+            $message = "mis à jour";
+            if($new)
+            {
+                $message = "créé";
+            }
+            $this->addFlash("success",$personne->getName()." a été ".$message." ajouté avec succés !");
+            return $this->redirectToRoute("Personne.List.Paginated");
 
+        }else
+        {
+            return $this->render('personne/Form-Personne.html.twig', [
+                'form' => $form->createView()
+            ]);
+        }
+
+
+    }
 }
+
+
 

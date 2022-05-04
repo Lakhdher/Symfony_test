@@ -13,7 +13,10 @@
         <div class="card-body">
           <h5 class="card-title">{{personne.Name}}</h5>
           <p class="card-text">{{personne.Firstname}} {{personne.Name}}</p>
-          <a href="{{ path("Personne.GetById",{id:personne.id})}}" class="btn btn-primary">{{personne.Age}}</a>
+          <p class="card-text">{{personne.age}}</p>
+          <a href="{{ path("Personne.GetById",{id:personne.id})}}" class="btn btn-primary">detail</a>
+          <a href="{{ path("Personne.Delete",{id:personne.id})}}" class="btn btn-primary">delete</a>
+          <a href="{{ path("Personne.Edit",{id:personne.id})}}" class="btn btn-primary">edit</a>
         </div>
       </div>    
     
